@@ -5,6 +5,18 @@ import random
 from collections import defaultdict, deque
 from pathlib import Path
 
+import pyrogram.errors
+
+# Compatibility aliases: PyTgCalls imports the older spelling.
+if not hasattr(pyrogram.errors, "GroupcallForbidden"):
+    pyrogram.errors.GroupcallForbidden = getattr(
+        pyrogram.errors, "GroupCallForbidden", Exception
+    )
+if not hasattr(pyrogram.errors, "GroupcallInvalid"):
+    pyrogram.errors.GroupcallInvalid = getattr(
+        pyrogram.errors, "GroupCallInvalid", Exception
+    )
+
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pytgcalls import PyTgCalls, filters as call_filters
@@ -73,12 +85,12 @@ async def play_next(chat_id: int):
         else:
             current.pop(chat_id, None)
             try:
-                calls.leave_call(chat_id)
+                await calls.leave_call(chat_id)
             except Exception:
                 pass
             return
         try:
-            calls.play(
+            await calls.play(
                 chat_id,
                 MediaStream(track["path"], video_flags=MediaStream.Flags.IGNORE),
             )
@@ -160,7 +172,7 @@ async def play_cmd(_, message: Message):
 @bot.on_message(filters.group & filters.command("pause"))
 async def pause_cmd(_, message: Message):
     try:
-        calls.pause(message.chat.id)
+        await calls.pause(message.chat.id)
         await message.reply_text("⏸️ Paused.")
     except Exception:
         await message.reply_text("Abhi kuch play nahi ho raha.")
@@ -169,7 +181,7 @@ async def pause_cmd(_, message: Message):
 @bot.on_message(filters.group & filters.command("resume"))
 async def resume_cmd(_, message: Message):
     try:
-        calls.resume(message.chat.id)
+        await calls.resume(message.chat.id)
         await message.reply_text("▶️ Resumed.")
     except Exception:
         await message.reply_text("Resume nahi ho paya. Voice chat active hai?")
@@ -182,7 +194,7 @@ async def skip_cmd(_, message: Message):
         await message.reply_text("Abhi kuch play nahi ho raha.")
         return
     try:
-        calls.leave_call(chat_id)
+        await calls.leave_call(chat_id)
     except Exception:
         pass
     current.pop(chat_id, None)
@@ -233,7 +245,7 @@ async def volume_cmd(_, message: Message):
     chat_id = message.chat.id
     volume[chat_id] = int(args[1])
     try:
-        calls.change_volume_call(chat_id, volume[chat_id])
+        await calls.change_volume_call(chat_id, volume[chat_id])
         await message.reply_text(f"Volume set: {volume[chat_id]}%")
     except Exception:
         await message.reply_text("Volume change nahi hua. Pehle audio play karo.")
@@ -255,7 +267,7 @@ async def stop_cmd(_, message: Message):
 async def main():
     await bot.start()
     await assistant.start()
-    calls.start()
+    await calls.start()
     me = await bot.get_me()
     log.info("Started as @%s", me.username)
     await asyncio.Event().wait()

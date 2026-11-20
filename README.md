@@ -51,7 +51,7 @@ go test ./...
 go build ./cmd/bot
 ```
 
-For Railway, set the service Dockerfile path to `Dockerfile.go`. Attach a persistent Volume at `/app/data` if queue state must survive redeploys.
+For Railway, set the service Dockerfile path to `DockerfileGo`. Attach a persistent Volume at `/app/data` if queue state must survive redeploys.
 
 ## Licensing
 

@@ -49,14 +49,21 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte("{\"status\":\"ok\",\"service\":\"zeborax-bot\"}"))
 	})
-	server := &http.Server{Addr: envOr("PORT", "8080"), Handler: mux, ReadHeaderTimeout: 5 * time.Second}
+	port := strings.TrimSpace(envOr("PORT", "8080"))
+	addr := port
+	if !strings.Contains(port, ":") {
+		addr = ":" + port
+	}
+	server := &http.Server{Addr: addr, Handler: mux, ReadHeaderTimeout: 5 * time.Second}
 	go func() {
+		log.Printf("health server listening on %s", addr)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Printf("health server: %v", err); stop()
+			log.Printf("health server: %v", err)
+			stop()
 		}
 	}()
 
-	log.Println("ZeboraX Go bot starting")
+	log.Println("ZeboraX Go bot starting; Telegram long polling enabled")
 	go b.Start(ctx)
 	<-ctx.Done()
 	if voiceEngine != nil { voiceEngine.Close() }

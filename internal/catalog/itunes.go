@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -48,7 +49,7 @@ func Search(ctx context.Context, query string) ([]Track, error) {
 		return nil, fmt.Errorf("music search returned HTTP %d", resp.StatusCode)
 	}
 	var payload searchResponse
-	if err := json.NewDecoder(http.MaxBytesReader(nil, resp.Body, 2<<20)).Decode(&payload); err != nil {
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 2<<20)).Decode(&payload); err != nil {
 		return nil, fmt.Errorf("decode music search: %w", err)
 	}
 	tracks := make([]Track, 0, len(payload.Results))

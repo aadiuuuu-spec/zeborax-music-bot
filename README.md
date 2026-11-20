@@ -5,39 +5,49 @@ Telegram bot project maintained by **Aditya**.
 - Bot: [@ZeboraXmusic_bot](https://t.me/ZeboraXmusic_bot)
 - Owner: [@II_YUTA_II](https://t.me/II_YUTA_II)
 
-## Branch status
+## Current Go rebuild status
 
-This `go-rebuild` branch contains the first Go control-plane scaffold. It is intentionally separate from the existing Python deployment on `main`.
+This `go-rebuild` branch is separate from the original Python `main` branch.
 
-Implemented in this scaffold:
-- Telegram bot startup using `BOT_TOKEN`
-- Private-chat and group command responses for `/start` and `/help`
-- Command parsing for the planned music controls
-- HTTP health endpoint at `/health`
-- Graceful shutdown and a multi-stage Go Dockerfile
+Implemented:
+- Telegram bot startup and graceful shutdown
+- Private and group `/start` and `/help`
+- Per-chat request queue with JSON persistence
+- `/play` stores a text request; `/queue` lists saved requests
+- `/shuffle`, `/loop`, `/autoplay`, and `/volume` queue preferences
+- `/stop` and `/end` clear the saved queue
+- `/health` endpoint and GitHub Actions Go checks
 
-**Not implemented yet:** actual Telegram voice-chat joining, assistant user session, audio streaming, song search, queue persistence, and playback controls. The music commands explicitly report that playback is not connected; they do not pretend to play audio.
+Not implemented:
+- Telegram voice-chat assistant login and joining
+- Actual audio streaming, pause/resume/skip of a live stream
+- Song search, recommendations, and media-source integration
 
-## Build locally
+The bot clearly reports these limitations. A saved `/play` request is currently a queued text request, not a playing song.
+
+## Build and run
 
 Requires Go 1.22 or newer.
 
 ```sh
 go mod tidy
+go test ./...
 go build ./cmd/bot
 BOT_TOKEN="your-token" ./bot
 ```
 
-## Deploying this branch
+## Railway deployment
 
-Use `Dockerfile.go` as the Dockerfile path in the deployment service. Set `BOT_TOKEN` in the hosting provider's secret environment variables. The service exposes `/health` on the platform-provided `PORT`.
+Set the service Dockerfile path to `Dockerfile.go`. Add `BOT_TOKEN` as a private Railway Variable. The health endpoint listens on the platform-provided `PORT`.
 
-Do not commit real tokens, API hashes, or session strings. Never send them in chat. Rotate a credential immediately if it is exposed.
+For queue persistence across redeploys, attach a Railway Volume mounted at `/app/data`. Without a persistent volume, queue state may be lost when the container is replaced.
 
-## Planned voice engine
+## Secrets
 
-A Telegram bot token alone cannot join a group voice chat as an assistant user. A separate Telegram user-account session and a compatible voice-call engine will be needed for that feature. Add any session string only as a private deployment secret after the voice engine is implemented and tested.
+Never commit or send bot tokens, API hashes, Telegram session strings, or cookies. Store credentials only in private deployment variables. Rotate any credential that is exposed.
 
-## Audio and platform policy
+## Voice engine and audio policy
+
+A Telegram bot token alone cannot join a group voice chat as an assistant user. A separate Telegram user-account session and a compatible voice-call engine are required. Add a session string only as a private deployment secret after the voice engine has been implemented and tested.
 
 Playback will be limited to audio the operator owns, is licensed to use, or is otherwise authorized to stream. This project will not use browser cookies or account sessions to bypass another platform's access controls.

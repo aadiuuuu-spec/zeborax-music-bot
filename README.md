@@ -1,1 +1,1 @@
-# zeborax-music-bot
+ ZeboraX Music Bot 

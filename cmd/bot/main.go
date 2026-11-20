@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aadiuuuu-spec/zeborax-music-bot/internal/catalog"
 	"github.com/aadiuuuu-spec/zeborax-music-bot/internal/music"
 	"github.com/aadiuuuu-spec/zeborax-music-bot/internal/voice"
 	"github.com/go-telegram/bot"
@@ -82,22 +83,26 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 	case "/start":
 		reply = "ZeboraX Music Bot is online. Use /help to see commands."
 	case "/help":
-		reply = "ZeboraX commands:\n/join — join this group's active voice chat\n/play <public audio URL> — stream audio\n/queue — show saved text requests\n/pause /resume /skip\n/stop — stop audio and clear requests\n/end — leave voice chat\n/volume 1-200\n/shuffle /loop /autoplay\n\nSong-name search is not connected. Use an audio URL you have permission to stream."
+		reply = "ZeboraX commands:\n/play <song name> — search and play a short music preview (assistant auto-joins)\n/play <public audio URL> — stream an authorized audio URL\n/join — join this group's active voice chat\n/queue — show saved text requests\n/pause /resume /skip\n/stop — stop audio and clear requests\n/end — leave voice chat\n/volume 1-200\n/shuffle /loop /autoplay\n\nSong search currently uses Apple's public preview catalog; previews are short clips, not full songs."
 	case "/join":
 		if voiceEngine == nil { reply = voiceSetupHint(); break }
 		if err := voiceEngine.Join(chatID); err != nil { reply = "Could not join voice chat: " + err.Error() } else { reply = "Assistant joined the active voice chat." }
 	case "/play":
-		if len(args) == 0 { reply = "Usage: /play <public audio URL>"; break }
+		if len(args) == 0 { reply = "Usage: /play <song name or authorized audio URL>"; break }
+		if voiceEngine == nil { reply = voiceSetupHint(); break }
 		raw := strings.Join(args, " ")
-		u, err := url.ParseRequestURI(raw)
-		if err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" {
-			if voiceEngine == nil { reply = voiceSetupHint(); break }
+		u, parseErr := url.ParseRequestURI(raw)
+		if parseErr == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != "" {
 			if err := voiceEngine.PlayURL(ctx, chatID, raw); err != nil { reply = "Playback could not start: " + err.Error() } else { reply = "Audio stream started in the voice chat." }
+			break
+		}
+		results, err := catalog.Search(ctx, raw)
+		if err != nil { reply = "Song search failed: " + err.Error(); break }
+		track := results[0]
+		if err := voiceEngine.PlayURL(ctx, chatID, track.PreviewURL); err != nil {
+			reply = "Found " + track.Title + " — " + track.Artist + ", but playback failed: " + err.Error()
 		} else {
-			position, err := queues.Add(chatID, raw, requester)
-			if err != nil { reply = "Could not save request: " + err.Error() } else {
-				reply = fmt.Sprintf("Saved as text request #%d. Song-name search is not connected yet; send a permitted public audio URL to play.", position)
-			}
+			reply = fmt.Sprintf("▶ Now playing preview: %s — %s\nAssistant joined the voice chat automatically.\nNote: this catalog provides a short preview, not the full track.", track.Title, track.Artist)
 		}
 	case "/queue":
 		state := queues.Snapshot(chatID)
@@ -107,13 +112,13 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 			if i == 20 { lines = append(lines, fmt.Sprintf("…and %d more", len(state.Queue)-20)); break }
 			lines = append(lines, fmt.Sprintf("%d. %s", i+1, track.Query))
 		}
-		reply = "Saved requests (not yet playable):\n" + strings.Join(lines, "\n")
+		reply = "Saved requests:\n" + strings.Join(lines, "\n")
 	case "/pause":
 		if voiceEngine == nil { reply = voiceSetupHint() } else if err := voiceEngine.Pause(chatID); err != nil { reply = err.Error() } else { reply = "Playback paused." }
 	case "/resume":
 		if voiceEngine == nil { reply = voiceSetupHint() } else if err := voiceEngine.Resume(chatID); err != nil { reply = err.Error() } else { reply = "Playback resumed." }
 	case "/skip":
-		if voiceEngine == nil { reply = voiceSetupHint() } else if err := voiceEngine.Skip(chatID); err != nil { reply = err.Error() } else { reply = "Current stream skipped." }
+		if voiceEngine == nil { reply = voiceSetupHint() } else if err := voiceEngine.Skip(chatID); err != nil { reply = err.Error() } else { reply = "Current preview skipped." }
 	case "/stop":
 		if voiceEngine != nil { voiceEngine.Stop(chatID) }
 		if err := queues.Clear(chatID); err != nil { reply = "Could not clear saved requests: " + err.Error() } else { reply = "Playback stopped and saved requests cleared." }
@@ -127,7 +132,7 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 		if err := queues.SetLoop(chatID, mode); err != nil { reply = "Usage: /loop off|track|queue" } else { reply = "Loop preference set to " + mode + "." }
 	case "/autoplay":
 		enabled, err := queues.ToggleAutoplay(chatID)
-		if err != nil { reply = "Could not update autoplay: " + err.Error() } else { reply = fmt.Sprintf("Autoplay preference %s. Search provider is not configured.", onOff(enabled)) }
+		if err != nil { reply = "Could not update autoplay: " + err.Error() } else { reply = fmt.Sprintf("Autoplay preference %s. Search provider is not configured for recommendations.", onOff(enabled)) }
 	case "/volume":
 		if len(args) != 1 { reply = "Usage: /volume 1-200"; break }
 		value, err := strconv.Atoi(args[0])

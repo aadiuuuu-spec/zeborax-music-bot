@@ -13,14 +13,15 @@ This branch is separate from the original Python `main` branch.
 - Telegram Bot API command handling and health endpoint
 - Telegram MTProto assistant client configuration
 - Group voice-chat join/leave via gortc
-- `/play <song name>` searches Apple's public iTunes Search API and streams the first available audio preview
-- Assistant automatically joins the active group voice chat when preview playback starts
+- `/play <song name>` searches Jamendo for full-length tracks and only accepts CC0, CC BY, or CC BY-SA licenses
+- The bot skips results with an unsupported license or failed stream and tries the next matching result
+- Assistant automatically joins the active group voice chat when a full-track stream starts
 - `/play <public audio URL>` streams an authorized HTTP/HTTPS audio URL through FFmpeg
 - Pause, resume, skip, stop and volume controls for the active stream
 - Per-chat saved text-request queue and JSON persistence
 
 ### Important playback limitation
-The public iTunes Search API supplies short preview clips, not full-length songs. This implementation therefore proves the search-to-voice-chat flow, but it is not a full-song catalog. Full-length playback requires a music provider that explicitly authorizes streaming and provides a supported playback API. Search metadata alone is not an audio stream. YouTube cookie extraction or account-session access bypasses are not included.
+Song-name search uses Jamendo's catalog, which provides full-length streams for independent music published under Creative Commons licenses. The bot conservatively accepts only CC0, CC BY, and CC BY-SA licenses, and includes the license link in its now-playing message. This catalog will not contain every mainstream/commercial song. A missing or failed result is skipped; it does not fall back to a short preview. Review Jamendo's API terms and each track's license before using the bot in a public or commercial setting. YouTube cookie extraction or account-session access bypasses are not included.
 
 Queue auto-advance and autoplay recommendations are not implemented yet. A real Telegram group voice-chat end-to-end test and Go CI build are still required before calling this production-ready.
 
@@ -32,6 +33,7 @@ Set these as private Railway Variables (never commit them):
 - `API_ID` — Telegram application ID
 - `API_HASH` — Telegram application hash
 - `ASSISTANT_SESSION` — MTProto session for a separate assistant account
+- `JAMENDO_CLIENT_ID` — application client ID from your Jamendo developer account (required for full-track song-name search)
 - `PORT` — supplied by Railway
 - `QUEUE_STATE_FILE` — defaults to `/app/data/queues.json` in Docker
 

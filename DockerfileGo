@@ -1,9 +1,11 @@
 FROM golang:1.26-alpine AS build
 WORKDIR /src
-COPY go.mod ./
-RUN go mod download
+
+# Copy the complete module before resolving dependencies so Go can generate
+# go.sum from the actual packages imported by the application.
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/zeborax ./cmd/bot
+RUN go mod tidy
+RUN CGO_ENABLED=0 GOOS=linux go build -mod=readonly -trimpath -ldflags="-s -w" -o /out/zeborax ./cmd/bot
 
 FROM alpine:3.22
 RUN apk add --no-cache ca-certificates ffmpeg

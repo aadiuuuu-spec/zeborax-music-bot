@@ -113,12 +113,12 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 				failures = append(failures, track.Title+": "+err.Error())
 				continue
 			}
-			reply = fmt.Sprintf("▶ Now playing full track: %s — %s\\nLicense: %s\\nSource: Jamendo. Assistant joined the voice chat automatically.", track.Title, track.Artist, track.License)
+			reply = fmt.Sprintf("▶ Now playing full track: %s — %s\nLicense: %s\nSource: Jamendo. Assistant joined the voice chat automatically.", track.Title, track.Artist, track.License)
 			played = true
 			break
 		}
 		if !played {
-			reply = "All matching licensed tracks failed to start. Try another search.\\n" + strings.Join(failures, "\\n")
+			reply = "All matching licensed tracks failed to start. Try another search.\n" + strings.Join(failures, "\n")
 		}
 	case "/queue":
 		state := queues.Snapshot(chatID)

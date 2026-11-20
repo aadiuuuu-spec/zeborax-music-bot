@@ -258,7 +258,7 @@ async def stop_cmd(_, message: Message):
     current.pop(chat_id, None)
     autoplay[chat_id] = False
     try:
-        calls.leave_call(chat_id)
+        await calls.leave_call(chat_id)
     except Exception:
         pass
     await message.reply_text("⏹️ Playback stopped. Voice chat se leave kar diya.")

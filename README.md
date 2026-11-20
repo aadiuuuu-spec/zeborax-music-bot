@@ -1,56 +1,43 @@
 # ZeboraX Music Bot
 
-Telegram group voice-chat music bot maintained by **Aditya**.
+Telegram bot project maintained by **Aditya**.
 
-- Bot username: [@ZeboraXmusic_bot](https://t.me/ZeboraXmusic_bot)
+- Bot: [@ZeboraXmusic_bot](https://t.me/ZeboraXmusic_bot)
 - Owner: [@II_YUTA_II](https://t.me/II_YUTA_II)
 
-## Features
+## Branch status
 
-- Play audio files sent in a Telegram group or by replying with `/play`
-- Pause, resume, skip, queue, shuffle
-- Loop modes: off, current track, queue
-- Autoplay toggle (repeats the current track when the queue becomes empty)
-- Volume command
-- `/end` stops playback and leaves the voice chat
+This `go-rebuild` branch contains the first Go control-plane scaffold. It is intentionally separate from the existing Python deployment on `main`.
 
-## Requirements
+Implemented in this scaffold:
+- Telegram bot startup using `BOT_TOKEN`
+- Private-chat and group command responses for `/start` and `/help`
+- Command parsing for the planned music controls
+- HTTP health endpoint at `/health`
+- Graceful shutdown and a multi-stage Go Dockerfile
 
-- Python 3.10+
-- Telegram API ID and API hash
-- A Telegram bot token from BotFather
-- A user-account Pyrogram session string for the voice-chat assistant
-- A Railway service using the included Dockerfile
+**Not implemented yet:** actual Telegram voice-chat joining, assistant user session, audio streaming, song search, queue persistence, and playback controls. The music commands explicitly report that playback is not connected; they do not pretend to play audio.
 
-**Important:** Telegram voice chats require an MTProto user account to join. The bot token alone cannot join a voice chat. Keep the assistant account dedicated to this bot and protect its session string like a password.
+## Build locally
 
-## Railway deployment
+Requires Go 1.22 or newer.
 
-1. Create a Railway project and deploy this GitHub repository.
-2. Add these variables in Railway service Variables:
-   - `API_ID`
-   - `API_HASH`
-   - `BOT_TOKEN`
-   - `SESSION_STRING`
-   - `OWNER_USERNAME` = `II_YUTA_II`
-3. Deploy/redeploy and check the service logs.
+```sh
+go mod tidy
+go build ./cmd/bot
+BOT_TOKEN="your-token" ./bot
+```
 
-Do not put real credentials in GitHub. Use Railway Variables only. Railway usage may incur charges; check the current plan and estimated usage before deploying.
+## Deploying this branch
 
-## Use
+Use `Dockerfile.go` as the Dockerfile path in the deployment service. Set `BOT_TOKEN` in the hosting provider's secret environment variables. The service exposes `/health` on the platform-provided `PORT`.
 
-1. Add the bot and the assistant account to your Telegram group.
-2. Make the assistant account an admin if Telegram requires it to manage/join the group voice chat.
-3. Start a group voice chat.
-4. Send an audio file in the group, or reply to an audio file with `/play`.
-5. Use `/help` to see commands.
+Do not commit real tokens, API hashes, or session strings. Never send them in chat. Rotate a credential immediately if it is exposed.
 
-The Telegram Bot API download limit means this starter accepts audio files up to 20 MB.
+## Planned voice engine
 
-## Legal use
+A Telegram bot token alone cannot join a group voice chat as an assistant user. A separate Telegram user-account session and a compatible voice-call engine will be needed for that feature. Add any session string only as a private deployment secret after the voice engine is implemented and tested.
 
-Only play audio that you own, have permission to use, or that is otherwise legally available to you. This project does not download music from YouTube or other third-party platforms.
+## Audio and platform policy
 
-## Current scope
-
-This is an initial implementation scaffold, not a promise of 24/7 free hosting. Test it in a private group first. Some Telegram voice-chat permissions and PyTgCalls compatibility may require adjustments for your account and group.
+Playback will be limited to audio the operator owns, is licensed to use, or is otherwise authorized to stream. This project will not use browser cookies or account sessions to bypass another platform's access controls.

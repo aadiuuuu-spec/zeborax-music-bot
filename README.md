@@ -13,17 +13,16 @@ This branch is separate from the original Python `main` branch.
 - Telegram Bot API command handling and health endpoint
 - Telegram MTProto assistant client configuration
 - Group voice-chat join/leave via gortc
-- Audio-only streaming from a public HTTP/HTTPS media URL through ffmpeg
+- `/play <song name>` searches Apple's public iTunes Search API and streams the first available audio preview
+- Assistant automatically joins the active group voice chat when preview playback starts
+- `/play <public audio URL>` streams an authorized HTTP/HTTPS audio URL through FFmpeg
 - Pause, resume, skip, stop and volume controls for the active stream
-- Per-chat saved text-request queue and queue preferences
-- JSON queue persistence
+- Per-chat saved text-request queue and JSON persistence
 
-### Still not implemented
-- Song-name search and a supported catalog/provider
-- Automatic next-track queue playback and autoplay recommendations
-- A verified end-to-end live voice-chat test against a real Telegram group
+### Important playback limitation
+The public iTunes Search API supplies short preview clips, not full-length songs. This implementation therefore proves the search-to-voice-chat flow, but it is not a full-song catalog. Full-length playback requires a music provider that explicitly authorizes streaming and provides a supported playback API. Search metadata alone is not an audio stream. YouTube cookie extraction or account-session access bypasses are not included.
 
-A plain `/play song name` is saved as a text request; it does not magically search or play. To stream now, use `/play https://.../audio-file.mp3` with a public audio URL you are authorized to use. YouTube cookie extraction or account-session access bypasses are not included.
+Queue auto-advance and autoplay recommendations are not implemented yet. A real Telegram group voice-chat end-to-end test and Go CI build are still required before calling this production-ready.
 
 ## Environment variables
 
@@ -38,7 +37,7 @@ Set these as private Railway Variables (never commit them):
 
 Use a separate assistant account that you control and can afford to dedicate to this bot. A Telegram session can grant access to that account. Never paste it into a chat, issue, commit, screenshot, or public log. If it is exposed, revoke that session from Telegram's active sessions immediately.
 
-The assistant account must be a member of the group, and the group must already have an active voice chat for `/join` to work.
+The assistant account must be a member of the group, and the group must already have an active voice chat for playback to work.
 
 ## Build and test
 

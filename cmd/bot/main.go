@@ -74,10 +74,6 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 	command := strings.ToLower(strings.SplitN(parts[0], "@", 2)[0])
 	args := parts[1:]
 	chatID := msg.Chat.ID
-	requester := "Telegram user"
-	if msg.From != nil {
-		if msg.From.Username != "" { requester = "@" + msg.From.Username } else { requester = msg.From.FirstName }
-	}
 	reply := ""
 	switch command {
 	case "/start":

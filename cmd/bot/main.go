@@ -83,7 +83,7 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 	case "/start":
 		reply = "ZeboraX Music Bot is online. Use /help to see commands."
 	case "/help":
-		reply = "ZeboraX commands:\n/play <song name> — search and play a short music preview (assistant auto-joins)\n/play <public audio URL> — stream an authorized audio URL\n/join — join this group's active voice chat\n/queue — show saved text requests\n/pause /resume /skip\n/stop — stop audio and clear requests\n/end — leave voice chat\n/volume 1-200\n/shuffle /loop /autoplay\n\nSong search currently uses Apple's public preview catalog; previews are short clips, not full songs."
+		reply = "ZeboraX commands:\n/play <song name> — search full-length licensed tracks (assistant auto-joins)\n/play <public audio URL> — stream an authorized audio URL\n/join — join this group's active voice chat\n/queue — show saved text requests\n/pause /resume /skip\n/stop — stop audio and clear requests\n/end — leave voice chat\n/volume 1-200\n/shuffle /loop /autoplay\n\nSong-name search uses Jamendo's full-length catalog and only plays CC0, CC BY, or CC BY-SA tracks. Tracks without an accepted license or a working stream are skipped."
 	case "/join":
 		if voiceEngine == nil { reply = voiceSetupHint(); break }
 		if err := voiceEngine.Join(chatID); err != nil { reply = "Could not join voice chat: " + err.Error() } else { reply = "Assistant joined the active voice chat." }
@@ -96,13 +96,29 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 			if err := voiceEngine.PlayURL(ctx, chatID, raw); err != nil { reply = "Playback could not start: " + err.Error() } else { reply = "Audio stream started in the voice chat." }
 			break
 		}
-		results, err := catalog.Search(ctx, raw)
-		if err != nil { reply = "Song search failed: " + err.Error(); break }
-		track := results[0]
-		if err := voiceEngine.PlayURL(ctx, chatID, track.PreviewURL); err != nil {
-			reply = "Found " + track.Title + " — " + track.Artist + ", but playback failed: " + err.Error()
-		} else {
-			reply = fmt.Sprintf("▶ Now playing preview: %s — %s\nAssistant joined the voice chat automatically.\nNote: this catalog provides a short preview, not the full track.", track.Title, track.Artist)
+		clientID := strings.TrimSpace(os.Getenv("JAMENDO_CLIENT_ID"))
+		if clientID == "" {
+			reply = "Full-song search is not configured yet. Add JAMENDO_CLIENT_ID as a private deployment variable. Song search will not fall back to short previews."
+			break
+		}
+		results, err := catalog.SearchLicensed(ctx, raw, clientID)
+		if err != nil {
+			reply = "No authorized full-length track found: " + err.Error()
+			break
+		}
+		var failures []string
+		played := false
+		for _, track := range results {
+			if err := voiceEngine.PlayURL(ctx, chatID, track.StreamURL); err != nil {
+				failures = append(failures, track.Title+": "+err.Error())
+				continue
+			}
+			reply = fmt.Sprintf("▶ Now playing full track: %s — %s\\nLicense: %s\\nSource: Jamendo. Assistant joined the voice chat automatically.", track.Title, track.Artist, track.License)
+			played = true
+			break
+		}
+		if !played {
+			reply = "All matching licensed tracks failed to start. Try another search.\\n" + strings.Join(failures, "\\n")
 		}
 	case "/queue":
 		state := queues.Snapshot(chatID)

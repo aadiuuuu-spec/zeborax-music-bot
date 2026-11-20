@@ -134,7 +134,7 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 	case "/resume":
 		if voiceEngine == nil { reply = voiceSetupHint() } else if err := voiceEngine.Resume(chatID); err != nil { reply = err.Error() } else { reply = "Playback resumed." }
 	case "/skip":
-		if voiceEngine == nil { reply = voiceSetupHint() } else if err := voiceEngine.Skip(chatID); err != nil { reply = err.Error() } else { reply = "Current preview skipped." }
+		if voiceEngine == nil { reply = voiceSetupHint() } else if err := voiceEngine.Skip(chatID); err != nil { reply = err.Error() } else { reply = "Current track skipped." }
 	case "/stop":
 		if voiceEngine != nil { voiceEngine.Stop(chatID) }
 		if err := queues.Clear(chatID); err != nil { reply = "Could not clear saved requests: " + err.Error() } else { reply = "Playback stopped and saved requests cleared." }

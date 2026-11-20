@@ -9,7 +9,9 @@ FROM alpine:3.20
 RUN apk add --no-cache ca-certificates
 WORKDIR /app
 COPY --from=build /out/zeborax /app/zeborax
+RUN mkdir -p /app/data && chown -R 10001:10001 /app
 ENV PORT=8080
+ENV QUEUE_STATE_FILE=/app/data/queues.json
 EXPOSE 8080
 USER 10001:10001
 ENTRYPOINT ["/app/zeborax"]

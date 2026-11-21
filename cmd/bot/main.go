@@ -83,9 +83,17 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 	args := parts[1:]
 	chatID := msg.Chat.ID
 	reply := ""
+	var replyMarkup models.ReplyMarkup
 	switch command {
 	case "/start":
-		reply = "ZeboraX Music Bot is online. Use /help to see commands."
+		reply = "ZeboraX Music Bot is online. Open the music player below or use /help to see commands."
+		if msg.Chat.Type == "private" {
+			replyMarkup = models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{{
+					{Text: "🎧 Open ZeboraX Music", WebApp: &models.WebAppInfo{URL: "https://zebora-music-site-aadi-d894.vercel.app"}},
+				}},
+			}
+		}
 	case "/help":
 		reply = "ZeboraX commands:\n/play <song name> — search full-length licensed tracks (assistant auto-joins)\n/play <public audio URL> — stream an authorized audio URL\n/join — join this group's active voice chat\n/queue — show saved text requests\n/pause /resume /skip\n/stop — stop audio and clear requests\n/end — leave voice chat\n/volume 1-200\n/shuffle /loop /autoplay\n\nSong-name search uses Jamendo's full-length catalog and only plays CC0, CC BY, or CC BY-SA tracks. Tracks without an accepted license or a working stream are skipped."
 	case "/join":
@@ -162,7 +170,7 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 	default:
 		return
 	}
-	if _, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: chatID, Text: formatReply(reply), ParseMode: "HTML"}); err != nil { log.Printf("send message: %v", err) }
+	if _, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: chatID, Text: formatReply(reply), ParseMode: "HTML", ReplyMarkup: replyMarkup}); err != nil { log.Printf("send message: %v", err) }
 }
 
 // formatReply adds consistent Telegram HTML emphasis while escaping user/provider text.

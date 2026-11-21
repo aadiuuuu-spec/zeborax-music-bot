@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"html"
 	"fmt"
 	"log"
 	"net/http"
@@ -161,7 +162,15 @@ func handleMessage(ctx context.Context, b *bot.Bot, update *models.Update) {
 	default:
 		return
 	}
-	if _, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: chatID, Text: reply}); err != nil { log.Printf("send message: %v", err) }
+	if _, err := b.SendMessage(ctx, &bot.SendMessageParams{ChatID: chatID, Text: formatReply(reply), ParseMode: "HTML"}); err != nil { log.Printf("send message: %v", err) }
+}
+
+// formatReply adds consistent Telegram HTML emphasis while escaping user/provider text.
+func formatReply(reply string) string {
+	parts := strings.SplitN(html.EscapeString(strings.TrimSpace(reply)), "\n", 2)
+	if len(parts) == 0 || parts[0] == "" { return "🎵 <b>ZeboraX Music</b>" }
+	if len(parts) == 1 { return "🎵 <b>" + parts[0] + "</b>" }
+	return "🎵 <b>" + parts[0] + "</b>\n" + parts[1]
 }
 
 func voiceSetupHint() string {

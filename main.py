@@ -18,7 +18,7 @@ if not hasattr(pyrogram.errors, "GroupcallInvalid"):
     )
 
 from pyrogram import Client, filters
-from pyrogram.types import Message
+from pyrogram.types import BotCommand, Message
 from pytgcalls import PyTgCalls, filters as call_filters
 from pytgcalls.types import MediaStream, StreamEnded
 
@@ -266,6 +266,21 @@ async def stop_cmd(_, message: Message):
 
 async def main():
     await bot.start()
+    await bot.set_bot_commands([
+        BotCommand("start", "Start ZeboraX Music Bot"),
+        BotCommand("help", "Show music commands and usage"),
+        BotCommand("play", "Play replied audio in voice chat"),
+        BotCommand("pause", "Pause current playback"),
+        BotCommand("resume", "Resume paused playback"),
+        BotCommand("skip", "Skip to the next track"),
+        BotCommand("queue", "Show the current music queue"),
+        BotCommand("shuffle", "Shuffle queued tracks"),
+        BotCommand("loop", "Cycle loop: off, track, queue"),
+        BotCommand("autoplay", "Toggle automatic track repeat"),
+        BotCommand("volume", "Set playback volume from 1 to 200"),
+        BotCommand("stop", "Stop playback and clear the queue"),
+        BotCommand("end", "Stop playback and leave voice chat"),
+    ])
     await assistant.start()
     await calls.start()
     me = await bot.get_me()

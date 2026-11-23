@@ -18,7 +18,7 @@ if not hasattr(pyrogram.errors, "GroupcallInvalid"):
     )
 
 from pyrogram import Client, filters
-from pyrogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeAllPrivateChats, BotCommandScopeAllGroupChats, Message
+from pyrogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeAllPrivateChats, BotCommandScopeAllGroupChats, MenuButtonCommands, Message
 from pytgcalls import PyTgCalls, filters as call_filters
 from pytgcalls.types import MediaStream, StreamEnded
 
@@ -282,8 +282,27 @@ async def main():
         BotCommand("end", "sᴛᴏᴘ ᴍᴜsɪᴄ ᴀɴᴅ ʟᴇᴀᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ"),
     ]
 
-    for scope in (BotCommandScopeDefault(), BotCommandScopeAllPrivateChats(), BotCommandScopeAllGroupChats()):
-        await bot.set_bot_commands(music_commands, scope=scope)
+    # Publish the same music-only command list to Telegram's supported scopes.
+    scopes = (
+        BotCommandScopeDefault(),
+        BotCommandScopeAllPrivateChats(),
+        BotCommandScopeAllGroupChats(),
+    )
+    for scope in scopes:
+        ok = await bot.set_bot_commands(music_commands, scope=scope)
+        saved = await bot.get_bot_commands(scope=scope)
+        log.info(
+            "Command registration scope=%s success=%s saved=%s",
+            type(scope).__name__, ok, [command.command for command in saved],
+        )
+        if len(saved) != len(music_commands):
+            raise RuntimeError(
+                f"Telegram saved {len(saved)} of {len(music_commands)} music commands "
+                f"for {type(scope).__name__}"
+            )
+
+    # Keep the private-chat menu set to Telegram's native Commands menu.
+    await bot.set_chat_menu_button(menu_button=MenuButtonCommands())
     await assistant.start()
     await calls.start()
     me = await bot.get_me()

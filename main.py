@@ -267,23 +267,24 @@ async def stop_cmd(_, message: Message):
 async def main():
     await bot.start()
     music_commands = [
-        BotCommand("start", "Start ZeboraX Music Bot"),
-        BotCommand("help", "Show music commands and usage"),
-        BotCommand("play", "Play replied audio in voice chat"),
-        BotCommand("pause", "Pause current playback"),
-        BotCommand("resume", "Resume paused playback"),
-        BotCommand("skip", "Skip to the next track"),
-        BotCommand("queue", "Show the current music queue"),
-        BotCommand("shuffle", "Shuffle queued tracks"),
-        BotCommand("loop", "Cycle loop: off, track, queue"),
-        BotCommand("autoplay", "Toggle automatic track repeat"),
-        BotCommand("volume", "Set playback volume from 1 to 200"),
-        BotCommand("stop", "Stop playback and clear the queue"),
-        BotCommand("end", "Stop playback and leave voice chat"),
-    ])
+        BotCommand("start", "sᴛᴀʀᴛ ᴢᴇʙᴏʀᴀx ᴍᴜsɪᴄ ʙᴏᴛ"),
+        BotCommand("help", "sʜᴏᴡ ᴍᴜsɪᴄ ᴄᴏᴍᴍᴀɴᴅs ᴀɴᴅ ᴜsᴀɢᴇ"),
+        BotCommand("play", "ᴘʟᴀʏ ʀᴇᴘʟɪᴇᴅ ᴀᴜᴅɪᴏ ɪɴ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ"),
+        BotCommand("pause", "ᴘᴀᴜsᴇ ᴛʜᴇ ᴄᴜʀʀᴇɴᴛ ᴛʀᴀᴄᴋ"),
+        BotCommand("resume", "ʀᴇsᴜᴍᴇ ᴘᴀᴜsᴇᴅ ᴘʟᴀʏʙᴀᴄᴋ"),
+        BotCommand("skip", "sᴋɪᴘ ᴛᴏ ᴛʜᴇ ɴᴇxᴛ sᴏɴɢ ɪɴ ǫᴜᴇᴜᴇ"),
+        BotCommand("queue", "sʜᴏᴡ ᴀʟʟ sᴏɴɢs ɪɴ ǫᴜᴇᴜᴇ"),
+        BotCommand("shuffle", "sʜᴜғғʟᴇ ᴛʜᴇ ᴏʀᴅᴇʀ ᴏғ sᴏɴɢs"),
+        BotCommand("loop", "ʀᴇᴘᴇᴀᴛ ᴛʜᴇ ᴄᴜʀʀᴇɴᴛ ᴛʀᴀᴄᴋ"),
+        BotCommand("autoplay", "ᴘʟᴀʏ ʀᴇʟᴀᴛᴇᴅ sᴏɴɢs ᴡʜᴇɴ ǫᴜᴇᴜᴇ ᴇɴᴅs"),
+        BotCommand("volume", "sᴇᴛ ᴀᴜᴅɪᴏ ᴠᴏʟᴜᴍᴇ"),
+        BotCommand("stop", "sᴛᴏᴘ ᴍᴜsɪᴄ ᴀɴᴅ ᴄʟᴇᴀʀ ǫᴜᴇᴜᴇ"),
+        BotCommand("end", "sᴛᴏᴘ ᴍᴜsɪᴄ ᴀɴᴅ ʟᴇᴀᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ"),
+    ]
 
     for scope in (BotCommandScopeDefault(), BotCommandScopeAllPrivateChats(), BotCommandScopeAllGroupChats()):
-        await bot.set_bot_commands(music_commands, scope=scope)    await assistant.start()
+        await bot.set_bot_commands(music_commands, scope=scope)
+    await assistant.start()
     await calls.start()
     me = await bot.get_me()
     log.info("Started as @%s", me.username)

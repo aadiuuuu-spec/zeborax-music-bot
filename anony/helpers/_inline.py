@@ -92,6 +92,7 @@ class Inline:
             self.ikb(
                 text=f"{name} ({code}) {'✔️' if code == _lang else ''}",
                 callback_data=f"lang_change {code}",
+                style=enums.ButtonStyle.DANGER,
             )
             for code, name in langs.items()
         ]

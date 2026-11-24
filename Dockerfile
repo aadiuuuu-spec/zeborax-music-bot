@@ -1,15 +1,24 @@
-FROM python:3.11-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg libopus0 libffi8 gcc g++ make \
-    && rm -rf /var/lib/apt/lists/*
+FROM python:3.13-slim
 
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends ffmpeg curl unzip fonts-noto-core \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -fsSL https://deno.land/install.sh | sh
+
+
+ENV DENO_INSTALL="/root/.deno"
+ENV PATH="${DENO_INSTALL}/bin:${PATH}"
+
+RUN curl -Ls https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+
+COPY pyproject.toml uv.lock ./
+
+RUN uv sync --frozen
 
 COPY . .
-CMD ["python", "main.py"]
+
+CMD ["bash", "start"]

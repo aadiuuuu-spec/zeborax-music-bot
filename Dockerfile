@@ -8,16 +8,19 @@ RUN apt-get update -y \
     && rm -rf /var/lib/apt/lists/* \
     && curl -fsSL https://deno.land/install.sh | sh
 
-
 ENV DENO_INSTALL="/root/.deno"
 ENV PATH="${DENO_INSTALL}/bin:${PATH}"
+
+RUN deno --version
 
 RUN curl -Ls https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
 
 COPY pyproject.toml uv.lock ./
 
-RUN uv sync
+# Refresh yt-dlp and its EJS challenge-solver dependency at image build time.
+RUN uv lock --upgrade-package yt-dlp --upgrade-package yt-dlp-ejs \
+    && uv sync --locked
 
 COPY . .
 

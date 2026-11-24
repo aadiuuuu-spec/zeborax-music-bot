@@ -24,6 +24,65 @@ class Bot(pyrogram.Client):
         self.bl_users = pyrogram.filters.user()
         self.sudoers = pyrogram.filters.user(self.owner)
 
+    async def _register_command_menu(self):
+        """Register public commands with the original small-caps style."""
+        public_commands = [
+            ("start", "Sᴛᴀʀᴛ ᴛʜᴇ ᴍᴜsɪᴄ ʙᴏᴛ"),
+            ("help", "Sʜᴏᴡ ʜᴇʟᴘ ᴀɴᴅ ᴄᴏᴍᴍᴀɴᴅ ᴄᴀᴛᴇɢᴏʀɪᴇs"),
+            ("play", "Pʟᴀʏ ᴀ sᴏɴɢ ᴏʀ ᴀᴜᴅɪᴏ ʟɪɴᴋ"),
+            ("vplay", "Pʟᴀʏ ᴀ ᴠɪᴅᴇᴏ ɪɴ ᴛʜᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ"),
+            ("pause", "Pᴀᴜsᴇ ᴛʜᴇ ᴄᴜʀʀᴇɴᴛ sᴛʀᴇᴀᴍ"),
+            ("resume", "Rᴇsᴜᴍᴇ ᴛʜᴇ ᴘᴀᴜsᴇᴅ sᴛʀᴇᴀᴍ"),
+            ("skip", "Sᴋɪᴘ ᴛʜᴇ ᴄᴜʀʀᴇɴᴛ ᴛʀᴀᴄᴋ"),
+            ("stop", "Sᴛᴏᴘ ᴘʟᴀʏʙᴀᴄᴋ ᴀɴᴅ ᴄʟᴇᴀʀ ᴛʜᴇ ǫᴜᴇᴜᴇ"),
+            ("queue", "Sʜᴏᴡ ᴛʜᴇ ᴄᴜʀʀᴇɴᴛ ᴍᴜsɪᴄ ǫᴜᴇᴜᴇ"),
+            ("loop", "Sᴇᴛ ᴏʀ ᴅɪsᴀʙʟᴇ ᴛʀᴀᴄᴋ ʟᴏᴏᴘɪɴɢ"),
+            ("seek", "Sᴇᴇᴋ ꜰᴏʀᴡᴀʀᴅ ɪɴ ᴛʜᴇ ᴄᴜʀʀᴇɴᴛ ᴛʀᴀᴄᴋ"),
+            ("seekback", "Sᴇᴇᴋ ʙᴀᴄᴋᴡᴀʀᴅ ɪɴ ᴛʜᴇ ᴄᴜʀʀᴇɴᴛ ᴛʀᴀᴄᴋ"),
+            ("autoplay", "Eɴᴀʙʟᴇ, ᴅɪsᴀʙʟᴇ, ᴏʀ ᴄʜᴇᴄᴋ ᴀᴜᴛᴏᴘʟᴀʏ"),
+            ("ping", "Cʜᴇᴄᴋ ʙᴏᴛ ʀᴇsᴘᴏɴsᴇ ᴀɴᴅ sʏsᴛᴇᴍ sᴛᴀᴛᴜs"),
+            ("stats", "Sʜᴏᴡ ʙᴏᴛ sᴛᴀᴛɪsᴛɪᴄs"),
+            ("lang", "Cʜᴀɴɢᴇ ᴛʜᴇ ᴄʜᴀᴛ ʟᴀɴɢᴜᴀɢᴇ"),
+        ]
+        owner_commands = [
+            ("auth", "Aᴜᴛʜᴏʀɪᴢᴇ ᴀ ᴜsᴇʀ ᴛᴏ ᴄᴏɴᴛʀᴏʟ ᴘʟᴀʏʙᴀᴄᴋ"),
+            ("unauth", "Rᴇᴍᴏᴠᴇ ᴀ ᴘʟᴀʏʙᴀᴄᴋ-ᴀᴜᴛʜᴏʀɪᴢᴇᴅ ᴜsᴇʀ"),
+            ("blacklist", "Bʟᴀᴄᴋʟɪsᴛ ᴀ ᴄʜᴀᴛ ᴏʀ ᴜsᴇʀ"),
+            ("unblacklist", "Rᴇᴍᴏᴠᴇ ᴀ ᴄʜᴀᴛ ᴏʀ ᴜsᴇʀ ꜰʀᴏᴍ ʙʟᴀᴄᴋʟɪsᴛ"),
+            ("sudoers", "Sʜᴏᴡ ᴛʜᴇ sᴜᴅᴏ ᴜsᴇʀ ʟɪsᴛ"),
+            ("ac", "Sʜᴏᴡ ᴛʜᴇ ᴀᴄᴛɪᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛ ᴄᴏᴜɴᴛ"),
+            ("activevc", "Lɪsᴛ ᴀᴄᴛɪᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛs"),
+            ("broadcast", "Bʀᴏᴀᴅᴄᴀsᴛ ᴀ ʀᴇᴘʟɪᴇᴅ ᴍᴇssᴀɢᴇ"),
+            ("eval", "Exᴇᴄᴜᴛᴇ ᴀɴ ᴏᴡɴᴇʀ ᴄᴏᴅᴇ sɴɪᴘᴘᴇᴛ"),
+            ("logs", "Gᴇᴛ ᴛʜᴇ ʟᴀᴛᴇsᴛ ʙᴏᴛ ʟᴏɢ ꜰɪʟᴇ"),
+            ("logger", "Eɴᴀʙʟᴇ ᴏʀ ᴅɪsᴀʙʟᴇ ʙᴏᴛ ʟᴏɢɢɪɴɢ"),
+            ("restart", "Rᴇsᴛᴀʀᴛ ᴛʜᴇ ʙᴏᴛ"),
+            ("addsudo", "Aᴅᴅ ᴀ sᴜᴅᴏ ᴜsᴇʀ"),
+            ("rmsudo", "Rᴇᴍᴏᴠᴇ ᴀ sᴜᴅᴏ ᴜsᴇʀ"),
+        ]
+
+        make_commands = lambda items: [
+            pyrogram.types.BotCommand(command, description)
+            for command, description in items
+        ]
+
+        try:
+            await self.set_bot_commands(
+                make_commands(public_commands),
+                scope=pyrogram.types.BotCommandScopeDefault(),
+            )
+            await self.set_bot_commands(
+                make_commands(public_commands),
+                scope=pyrogram.types.BotCommandScopeAllGroupChats(),
+            )
+            await self.set_bot_commands(
+                make_commands(public_commands + owner_commands),
+                scope=pyrogram.types.BotCommandScopeChat(chat_id=self.owner),
+            )
+            logger.info("Telegram slash-command menus registered.")
+        except Exception:
+            logger.exception("Failed to register Telegram slash-command menus.")
+
     async def boot(self):
         """
         Starts the bot and performs initial setup.
@@ -32,6 +91,11 @@ class Bot(pyrogram.Client):
             SystemExit: If the bot fails to access the log group or is not an administrator in the logger group.
         """
         await super().start()
+        self.id = self.me.id
+        self.name = self.me.first_name
+        self.username = self.me.username
+        self.mention = self.me.mention
+        await self._register_command_menu()
         self.id = self.me.id
         self.name = self.me.first_name
         self.username = self.me.username

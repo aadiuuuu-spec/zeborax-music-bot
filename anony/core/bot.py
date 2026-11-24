@@ -96,10 +96,6 @@ class Bot(pyrogram.Client):
         self.username = self.me.username
         self.mention = self.me.mention
         await self._register_command_menu()
-        self.id = self.me.id
-        self.name = self.me.first_name
-        self.username = self.me.username
-        self.mention = self.me.mention
 
         try:
             await self.send_message(self.logger, "Bot Started")
